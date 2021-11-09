@@ -1,6 +1,5 @@
 const Sequelize = require('sequelize');
-const { noExtendLeft } = require('sequelize/types/lib/operators');
-const conn = new Sequelize(process.env.DATABASE_URL || 'postgres://localhost/bookmarks');
+const conn = new Sequelize(process.env.DATABASE_URL || 'postgres://localhost/bookmarks_db');
 
 const data = [
   {
@@ -41,26 +40,30 @@ const data = [
 ];
 
 
-const Bookmark = conn.define('Bookmark', {
-                  name: Sequelize.STRING, 
-                  URL: Sequelize.STRING, 
-                  category: Sequelize.STRING
-                })
+const Bookmark = conn.define('bookmark', {
+  name: Sequelize.STRING, 
+  URL: Sequelize.STRING, 
+  category: Sequelize.STRING
+})
 
-const syncAndseed = async() => {
+const syncAndSeed = async() => {
   try { 
-    await data.forEach(obj => Bookmark.create(obj))
+    await conn.sync({force: true}) // Model will drop table if it exists
+    await data.map(obj => Bookmark.create(obj)) // obj is a perfect fit 
+                                                //     OR should have been
+                                                // Bookmark.create({ name: obj.name,
+                                                //                   URL: obj.URL,
+                                                //                   category: obj.category 
+                                                //})
   }
-  catch(ex){
-  
+  catch(err){ 
+    console.log(err)
   }
 }
 
-
-
-
-
+//modules need to be exported and imported in the same order
 module.exports = {
-  syncAndseed,
-  conn
+  syncAndSeed,
+  conn,
+  models: { Bookmark }
 }
